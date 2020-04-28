@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Stream Application Stack
+Resources:
+  KinesisAnalyticsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: kinesisanalytics.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: Open
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: "*"
+                Resource: "*"
+
+  InputKinesisStream:
+    Type: AWS::Kinesis::Stream
+    Properties:
+      Name: KinesisInputData
+      ShardCount: 1
+
+  Application:
+    Type: AWS::KinesisAnalytics::Application
+    Properties:
+      ApplicationName: "sampleApplicationBalance"
+      ApplicationDescription: "SampleAppBalance"
+      Inputs:
+        - NamePrefix: "BalanceApplication"
+          InputSchema:
+            RecordColumns:
+             - Name: "eventTime"
+               SqlType: "TIMESTAMP"
+               Mapping: "$.eventTime"
+             - Name: "userName"
+               SqlType: "VARCHAR(8)"
+               Mapping: "$.userName"
+             - Name: "balance"
+               SqlType: "INTEGER"
+               Mapping: "$.balance"
+            RecordFormat:
+              RecordFormatType: "JSON"
+              MappingParameters:
+                JSONMappingParameters:
+                  RecordRowPath: "$"
+          KinesisStreamsInput:
+            ResourceARN: !GetAtt InputKinesisStream.Arn
+            RoleARN: !GetAtt KinesisAnalyticsRole.Arn
