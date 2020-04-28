@@ -1,2 +1,3 @@
-# aws_playground
-Repository will contains code related to AWS
+# AWS Playground
+
+Repository will contain code related to AWS
